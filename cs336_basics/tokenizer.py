@@ -83,16 +83,15 @@ def train_bpe(
     vocab = _build_base_vocab(special_tokens)
     merges: list[tuple[bytes, bytes]] = []
 
-    with open(input_path, encoding="utf-8") as f:
-        text = f.read()
-
     special_token_set = set(special_tokens)
     word_counts: Counter[tuple[bytes, ...]] = Counter()
-    for token in _split_on_special_tokens(text, special_tokens):
-        if token in special_token_set:
-            word_counts[(token.encode("utf-8"),)] += 1
-        else:
-            word_counts[_word_to_bytes(token)] += 1
+    with open(input_path, encoding="utf-8") as f:
+        for chunk in f:
+            for token in _split_on_special_tokens(chunk, special_tokens):
+                if token in special_token_set:
+                    word_counts[(token.encode("utf-8"),)] += 1
+                else:
+                    word_counts[_word_to_bytes(token)] += 1
 
     pair_counts: Counter[tuple[bytes, bytes]] = Counter()
     for pretoken, count in word_counts.items():
